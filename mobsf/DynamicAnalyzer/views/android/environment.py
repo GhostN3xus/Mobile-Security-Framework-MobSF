@@ -37,7 +37,24 @@ from mobsf.MobSF.utils import (
 from mobsf.StaticAnalyzer.models import StaticAnalyzerAndroid
 
 logger = logging.getLogger(__name__)
-ANDROID_API_SUPPORTED = 34
+
+
+def _get_android_api_supported():
+    """Fetch the maximum supported Android API level."""
+    value = os.environ.get('MOBSF_ANDROID_MAX_API')
+    if not value:
+        return 34
+    try:
+        return int(value)
+    except ValueError:
+        logger.warning(
+            'Invalid MOBSF_ANDROID_MAX_API value "%s". Falling back to 34.',
+            value,
+        )
+        return 34
+
+
+ANDROID_API_SUPPORTED = _get_android_api_supported()
 
 
 class Environment:

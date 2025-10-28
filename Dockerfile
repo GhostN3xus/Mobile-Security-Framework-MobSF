@@ -20,6 +20,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     USER_ID=9901 \
     MOBSF_PLATFORM=docker \
     MOBSF_ADB_BINARY=/usr/bin/adb \
+    MOBSF_ANDROID_MAX_API=34 \
     JAVA_HOME=/jdk-22.0.2 \
     PATH=/jdk-22.0.2/bin:/root/.local/bin:$PATH \
     DJANGO_SUPERUSER_USERNAME=mobsf \
