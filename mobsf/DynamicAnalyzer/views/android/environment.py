@@ -83,7 +83,28 @@ class Environment:
 
     def run_subprocess_verify_output(self, cmd, wait=2):
         """Run subprocess and verify execution."""
-        out = subprocess.check_output(cmd)  # lgtm [py/command-line-injection]
+        try:
+            out = subprocess.check_output(  # lgtm [py/command-line-injection]
+                cmd,
+                stderr=subprocess.STDOUT,
+            )
+        except subprocess.CalledProcessError as exc:
+            output = exc.output or b''
+            if output:
+                logger.error(
+                    '%s',
+                    output.decode('utf-8', 'ignore').replace('\n', ''),
+                )
+            else:
+                logger.error(
+                    'Command %s failed with exit code %s',
+                    cmd,
+                    exc.returncode,
+                )
+            return False
+        except Exception:  # pragma: no cover - defensive programming
+            logger.exception('Error executing subprocess command: %s', cmd)
+            return False
         self.wait(wait)                        # adb shell is allowed
         return self.check_connect_error(out)
 
@@ -186,7 +207,21 @@ class Environment:
                 args,  # lgtm [py/command-line-injection]
                 stderr=subprocess.STDOUT)
             return result
-        except Exception:
+        except subprocess.CalledProcessError as exc:
+            if not silent:
+                output = exc.output or b''
+                if output:
+                    logger.error(
+                        '%s', output.decode('utf-8', 'ignore').replace('\n', '')
+                    )
+                else:
+                    logger.error(
+                        'ADB command %s failed with exit code %s',
+                        args,
+                        exc.returncode,
+                    )
+            return None
+        except Exception:  # pragma: no cover - defensive programming
             if not silent:
                 logger.exception('Error Running ADB Command')
             return None
@@ -366,21 +401,31 @@ class Environment:
 
     def get_environment(self):
         """Identify the environment."""
-        out = self.adb_command(['getprop',
-                                'ro.boot.serialno'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.serialno'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.build.user'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.manufacturer.geny-def'],
-                                True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.product.manufacturer.geny-def'],
-                                True, False)
-        ver = self.adb_command(['getprop',
-                                'ro.genymotion.version'],
-                               True, False).decode('utf-8', 'ignore')
+        out = self.adb_command([
+            'getprop',
+            'ro.boot.serialno',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.serialno',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.build.user',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.manufacturer.geny-def',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.product.manufacturer.geny-def',
+        ], True, False) or b''
+        ver_out = self.adb_command([
+            'getprop',
+            'ro.genymotion.version',
+        ], True, False) or b''
+        ver = ver_out.decode('utf-8', 'ignore')
         if b'EMULATOR' in out:
             logger.info('Found Android Studio Emulator')
             return 'emulator'
