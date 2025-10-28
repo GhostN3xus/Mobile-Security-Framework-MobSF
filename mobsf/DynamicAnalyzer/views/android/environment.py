@@ -366,21 +366,31 @@ class Environment:
 
     def get_environment(self):
         """Identify the environment."""
-        out = self.adb_command(['getprop',
-                                'ro.boot.serialno'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.serialno'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.build.user'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.manufacturer.geny-def'],
-                                True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.product.manufacturer.geny-def'],
-                                True, False)
-        ver = self.adb_command(['getprop',
-                                'ro.genymotion.version'],
-                               True, False).decode('utf-8', 'ignore')
+        out = self.adb_command([
+            'getprop',
+            'ro.boot.serialno',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.serialno',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.build.user',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.manufacturer.geny-def',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.product.manufacturer.geny-def',
+        ], True, False) or b''
+        ver_out = self.adb_command([
+            'getprop',
+            'ro.genymotion.version',
+        ], True, False) or b''
+        ver = ver_out.decode('utf-8', 'ignore')
         if b'EMULATOR' in out:
             logger.info('Found Android Studio Emulator')
             return 'emulator'
