@@ -4,6 +4,12 @@
 
 Mobile Security Framework (MobSF) is a security research platform for mobile applications in Android, iOS and Windows Mobile. MobSF can be used for a variety of use cases such as mobile application security, penetration testing, malware analysis, and privacy analysis. The Static Analyzer supports popular mobile app binaries like APK, IPA, APPX and source code. Meanwhile, the Dynamic Analyzer supports both Android and iOS applications and offers a platform for interactive instrumented testing, runtime data and network traffic analysis. MobSF seamlessly integrates with your DevSecOps or CI/CD pipeline, facilitated by REST APIs and CLI tools, enhancing your security workflow with ease.
 
+### Highlights
+
+* **Modern Android dynamic analysis** – Out of the box, MobSF now ships with Android Virtual Device (AVD) profiles that cover Android 11 (API 30) through Android 14 (API 34). You can extend support for newer releases by setting the `MOBSF_ANDROID_MAX_API` environment variable before launching MobSF.
+* **Cross-platform coverage** – Unified static and dynamic analyzers for Android, iOS and Windows mobile applications with REST and CLI automation.
+* **Pluggable tooling** – Built-in Frida, ADB, proxy tooling, and PDF reporting with a single installer or Docker image.
+
 Made with ![Love](https://cloud.githubusercontent.com/assets/4301109/16754758/82e3a63c-4813-11e6-9430-6015d98aeaab.png) in India
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/opensecurity/mobile-security-framework-mobsf?style=social)](https://hub.docker.com/r/opensecurity/mobile-security-framework-mobsf/) [![python](https://img.shields.io/badge/python-3.12+-blue.svg?logo=python&labelColor=yellow)](https://www.python.org/downloads/)
@@ -36,14 +42,68 @@ MobSF is also bundled with [Android Tamer](https://tamerplatform.com), [BlackArc
 
 ## Documentation
 
-Quick setup with docker
+## Installation Guide
+
+### Quick setup with Docker
 
 ```
 docker pull opensecurity/mobile-security-framework-mobsf:latest
-docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf:latest
+docker run -it --rm -p 8000:8000 \
+  -e MOBSF_ANDROID_MAX_API=34 \  # Override for newer Android releases if required
+  opensecurity/mobile-security-framework-mobsf:latest
 
 # Default username and password: mobsf/mobsf
 ```
+
+> **Tip:** `MOBSF_ANDROID_MAX_API` defaults to 34 (Android 14). Set it to the newest API level that your emulator images support so the dynamic analyzer UI and automation scripts stay in sync with your deployment.
+
+### Manual installation (Linux/macOS/WSL)
+
+1. Install prerequisites: Python 3.12 or newer, Git, Java 11+ (for JADX), `adb`, and `wkhtmltopdf`.
+2. Clone the repository and install Python dependencies using Poetry:
+
+   ```bash
+   git clone https://github.com/MobSF/Mobile-Security-Framework-MobSF.git
+   cd Mobile-Security-Framework-MobSF
+   poetry install --only main
+   ```
+
+3. Run the platform setup script to download auxiliary tools and configure the database:
+
+   ```bash
+   ./setup.sh
+   ```
+
+4. Launch MobSF:
+
+   ```bash
+   ./run.sh
+   ```
+
+   The web interface is available at `http://127.0.0.1:8000/` (default credentials: `mobsf/mobsf`).
+
+### Manual installation (Windows)
+
+1. Install Python 3.12+, Git, Java 11+, and enable the Windows Subsystem for Linux optional components (required for some dynamic analysis tooling).
+2. Clone the repository and install dependencies:
+
+   ```powershell
+   git clone https://github.com/MobSF/Mobile-Security-Framework-MobSF.git
+   cd Mobile-Security-Framework-MobSF
+   .\setup.bat
+   ```
+
+3. Start MobSF with:
+
+   ```powershell
+   .\run.bat
+   ```
+
+### Dynamic Analyzer emulator support
+
+MobSF provisions Android Virtual Devices that cover Android 11 through Android 14 for instrumentation-based testing. The supported range is communicated through the `MOBSF_ANDROID_MAX_API` environment variable and appears inside the dynamic analyzer UI, start-up scripts (`scripts/start_avd.sh`, `scripts/start_avd.ps1`) and Docker image.
+
+If you maintain custom emulator images, make sure their API level is **less than or equal** to `MOBSF_ANDROID_MAX_API`. When you upgrade the emulators, bump the environment variable (for Docker users via `docker run -e MOBSF_ANDROID_MAX_API=<level>` or docker-compose) so MobSF advertises the correct compatibility window.
 
 [![See MobSF Documentation](https://user-images.githubusercontent.com/4301109/70686099-3855f780-1c79-11ea-8141-899e39459da2.png)](https://mobsf.github.io/docs)
 
