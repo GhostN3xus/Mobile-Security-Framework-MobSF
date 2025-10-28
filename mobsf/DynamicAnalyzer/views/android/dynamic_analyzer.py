@@ -84,14 +84,16 @@ def android_dynamic_analysis(request, api=False):
         try:
             if identifier:
                 env = Environment(identifier)
-                env.connect()
-                device_packages = env.get_device_packages()
-                if device_packages:
-                    pkg_file = Path(settings.DWD_DIR) / 'packages.json'
-                    with pkg_file.open('w', encoding='utf-8') as target:
-                        dump(device_packages, target)
-                and_ver = env.get_android_version()
-                and_sdk = env.get_android_sdk()
+                if env.connect():
+                    device_packages = env.get_device_packages()
+                    if device_packages:
+                        pkg_file = Path(settings.DWD_DIR) / 'packages.json'
+                        with pkg_file.open('w', encoding='utf-8') as target:
+                            dump(device_packages, target)
+                    and_ver = env.get_android_version()
+                    and_sdk = env.get_android_sdk()
+                else:
+                    logger.error('Cannot connect to Android Runtime')
         except Exception:
             pass
         context = {'apps': scan_apps,

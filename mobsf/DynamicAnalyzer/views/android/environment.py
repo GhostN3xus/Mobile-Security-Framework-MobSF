@@ -76,14 +76,49 @@ class Environment:
 
     def check_connect_error(self, output):
         """Check if connect failed."""
-        if b'unable to connect' in output or b'failed to connect' in output:
-            logger.error('%s', output.decode('utf-8').replace('\n', ''))
+        if not output:
+            return True
+        text = output.decode('utf-8', 'ignore')
+        normalized = text.lower()
+        failure_patterns = (
+            'unable to connect',
+            'failed to connect',
+            'device offline',
+            'device unauthorized',
+            'no devices/emulators found',
+            'more than one device/emulator',
+            'cannot connect',
+        )
+        device_not_found = 'device' in normalized and 'not found' in normalized
+        if any(pattern in normalized for pattern in failure_patterns) or device_not_found:
+            logger.error('%s', text.replace('\n', ''))
             return False
         return True
 
     def run_subprocess_verify_output(self, cmd, wait=2):
         """Run subprocess and verify execution."""
-        out = subprocess.check_output(cmd)  # lgtm [py/command-line-injection]
+        try:
+            out = subprocess.check_output(  # lgtm [py/command-line-injection]
+                cmd,
+                stderr=subprocess.STDOUT,
+            )
+        except subprocess.CalledProcessError as exc:
+            output = exc.output or b''
+            if output:
+                logger.error(
+                    '%s',
+                    output.decode('utf-8', 'ignore').replace('\n', ''),
+                )
+            else:
+                logger.error(
+                    'Command %s failed with exit code %s',
+                    cmd,
+                    exc.returncode,
+                )
+            return False
+        except Exception:  # pragma: no cover - defensive programming
+            logger.exception('Error executing subprocess command: %s', cmd)
+            return False
         self.wait(wait)                        # adb shell is allowed
         return self.check_connect_error(out)
 
@@ -92,9 +127,11 @@ class Environment:
         if not self.identifier:
             return False
         logger.info('Connecting to Android %s', self.identifier)
-        self.run_subprocess_verify_output([get_adb(),
-                                           'connect',
-                                           self.identifier])
+        return self.run_subprocess_verify_output([
+            get_adb(),
+            'connect',
+            self.identifier,
+        ])
 
     def connect_n_mount(self):
         """Test ADB Connection."""
@@ -186,10 +223,24 @@ class Environment:
                 args,  # lgtm [py/command-line-injection]
                 stderr=subprocess.STDOUT)
             return result
-        except Exception:
+        except subprocess.CalledProcessError as exc:
+            if not silent:
+                output = exc.output or b''
+                if output:
+                    logger.error(
+                        '%s', output.decode('utf-8', 'ignore').replace('\n', '')
+                    )
+                else:
+                    logger.error(
+                        'ADB command %s failed with exit code %s',
+                        args,
+                        exc.returncode,
+                    )
+            return b''
+        except Exception:  # pragma: no cover - defensive programming
             if not silent:
                 logger.exception('Error Running ADB Command')
-            return None
+            return b''
 
     def dz_cleanup(self, bin_hash):
         """Clean up before Dynamic Analysis."""
@@ -366,21 +417,31 @@ class Environment:
 
     def get_environment(self):
         """Identify the environment."""
-        out = self.adb_command(['getprop',
-                                'ro.boot.serialno'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.serialno'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.build.user'], True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.manufacturer.geny-def'],
-                                True, False)
-        out += self.adb_command(['getprop',
-                                 'ro.product.manufacturer.geny-def'],
-                                True, False)
-        ver = self.adb_command(['getprop',
-                                'ro.genymotion.version'],
-                               True, False).decode('utf-8', 'ignore')
+        out = self.adb_command([
+            'getprop',
+            'ro.boot.serialno',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.serialno',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.build.user',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.manufacturer.geny-def',
+        ], True, False) or b''
+        out += self.adb_command([
+            'getprop',
+            'ro.product.manufacturer.geny-def',
+        ], True, False) or b''
+        ver_out = self.adb_command([
+            'getprop',
+            'ro.genymotion.version',
+        ], True, False) or b''
+        ver = ver_out.decode('utf-8', 'ignore')
         if b'EMULATOR' in out:
             logger.info('Found Android Studio Emulator')
             return 'emulator'
@@ -400,29 +461,59 @@ class Environment:
 
     def get_android_version(self):
         """Get Android version."""
-        out = self.adb_command(['getprop',
-                                'ro.build.version.release'],
-                               True, False)
-        and_version = out.decode('utf-8').rstrip()
-        if and_version.count('.') > 1:
-            and_version = and_version.rsplit('.', 1)[0]
-        if and_version.count('.') > 1:
-            and_version = and_version.split('.', 1)[0]
-        return float(and_version)
+        out = self.adb_command([
+            'getprop',
+            'ro.build.version.release'],
+            True,
+            False,
+        )
+        version_str = out.decode('utf-8', 'ignore').strip()
+        if not version_str:
+            logger.warning('Android version property is empty. Falling back to 0.')
+            return 0.0
+        if version_str.count('.') > 1:
+            version_str = version_str.rsplit('.', 1)[0]
+        if version_str.count('.') > 1:
+            version_str = version_str.split('.', 1)[0]
+        try:
+            return float(version_str)
+        except ValueError:
+            logger.warning(
+                'Unable to parse Android version "%s". Falling back to 0.',
+                version_str,
+            )
+            return 0.0
 
     def get_android_arch(self):
         """Get Android Architecture."""
         out = self.adb_command([
             'getprop',
             'ro.product.cpu.abi'], True)
-        return out.decode('utf-8').rstrip()
+        arch = out.decode('utf-8', 'ignore').strip()
+        if not arch:
+            logger.warning('Android architecture property is empty.')
+        return arch
 
     def get_android_sdk(self):
         """Get Android API version."""
         out = self.adb_command([
             'getprop',
-            'ro.build.version.sdk'], True)
-        return out.decode('utf-8').strip()
+            'ro.build.version.sdk'],
+            True,
+            False,
+        )
+        sdk_str = out.decode('utf-8', 'ignore').strip()
+        if not sdk_str:
+            logger.warning('Android API property is empty. Unable to determine API level.')
+            return None
+        try:
+            return int(sdk_str)
+        except ValueError:
+            logger.warning(
+                'Unable to parse Android API level "%s". Unable to determine API level.',
+                sdk_str,
+            )
+            return None
 
     def get_device_packages(self):
         """Get all packages from device."""
@@ -525,10 +616,9 @@ class Environment:
         try:
             try:
                 api = self.get_android_sdk()
-                if api:
-                    logger.info('Android API Level '
-                                'identified as %s', api)
-                    if int(api) > ANDROID_API_SUPPORTED:
+                if api is not None:
+                    logger.info('Android API Level identified as %s', api)
+                    if api > ANDROID_API_SUPPORTED:
                         logger.error('This API Level is not supported'
                                      ' for Dynamic Analysis.')
                         return False
