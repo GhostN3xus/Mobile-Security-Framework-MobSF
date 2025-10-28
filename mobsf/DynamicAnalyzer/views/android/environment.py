@@ -76,8 +76,20 @@ class Environment:
 
     def check_connect_error(self, output):
         """Check if connect failed."""
-        if b'unable to connect' in output or b'failed to connect' in output:
-            logger.error('%s', output.decode('utf-8').replace('\n', ''))
+        if not output:
+            return True
+        text = output.decode('utf-8', 'ignore')
+        normalized = text.lower()
+        failure_patterns = (
+            'unable to connect',
+            'failed to connect',
+            'device offline',
+            'no devices/emulators found',
+            'cannot connect',
+        )
+        device_not_found = 'device' in normalized and 'not found' in normalized
+        if any(pattern in normalized for pattern in failure_patterns) or device_not_found:
+            logger.error('%s', text.replace('\n', ''))
             return False
         return True
 
@@ -473,14 +485,31 @@ class Environment:
         out = self.adb_command([
             'getprop',
             'ro.product.cpu.abi'], True)
-        return out.decode('utf-8', 'ignore').strip()
+        arch = out.decode('utf-8', 'ignore').strip()
+        if not arch:
+            logger.warning('Android architecture property is empty.')
+        return arch
 
     def get_android_sdk(self):
         """Get Android API version."""
         out = self.adb_command([
             'getprop',
-            'ro.build.version.sdk'], True)
-        return out.decode('utf-8', 'ignore').strip()
+            'ro.build.version.sdk'],
+            True,
+            False,
+        )
+        sdk_str = out.decode('utf-8', 'ignore').strip()
+        if not sdk_str:
+            logger.warning('Android API property is empty. Unable to determine API level.')
+            return None
+        try:
+            return int(sdk_str)
+        except ValueError:
+            logger.warning(
+                'Unable to parse Android API level "%s". Unable to determine API level.',
+                sdk_str,
+            )
+            return None
 
     def get_device_packages(self):
         """Get all packages from device."""
@@ -583,10 +612,9 @@ class Environment:
         try:
             try:
                 api = self.get_android_sdk()
-                if api:
-                    logger.info('Android API Level '
-                                'identified as %s', api)
-                    if int(api) > ANDROID_API_SUPPORTED:
+                if api is not None:
+                    logger.info('Android API Level identified as %s', api)
+                    if api > ANDROID_API_SUPPORTED:
                         logger.error('This API Level is not supported'
                                      ' for Dynamic Analysis.')
                         return False
