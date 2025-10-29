@@ -5,6 +5,7 @@ Django settings for MobSF project.
 MobSF and Django settings
 """
 
+import json
 import logging
 import os
 
@@ -32,6 +33,18 @@ def _env_int(name, default):
     try:
         return int(os.environ.get(name, default))
     except (TypeError, ValueError):
+        return default
+
+
+def _env_json(name, default):
+    """Return JSON structure from environment with graceful fallback."""
+    value = os.environ.get(name)
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except ValueError:
+        logger.warning('Invalid JSON supplied for %s', name)
         return default
 
 
@@ -67,6 +80,35 @@ AUTOMATION_EXECUTION = {
         },
     },
 }
+
+# Static application security testing (SAST) connectors
+SAST_INTEGRATION_TIMEOUT = _env_int('MOBSF_SAST_INTEGRATION_TIMEOUT', 120)
+
+SEMGREP_INTEGRATION = {
+    'enabled': _env_flag('MOBSF_SEMGREP_ENABLED'),
+    'api_url': os.environ.get(
+        'MOBSF_SEMGREP_API_URL', 'https://semgrep.dev/api/v1/scans'),
+    'api_token': os.environ.get('MOBSF_SEMGREP_API_TOKEN', ''),
+    'project_slug': os.environ.get('MOBSF_SEMGREP_PROJECT', ''),
+    'file_field': os.environ.get('MOBSF_SEMGREP_FILE_FIELD', 'bundle'),
+    'token_header': os.environ.get('MOBSF_SEMGREP_TOKEN_HEADER', 'Authorization'),
+    'token_prefix': os.environ.get('MOBSF_SEMGREP_TOKEN_PREFIX', 'Bearer '),
+    'extra_payload': _env_json('MOBSF_SEMGREP_EXTRA_PAYLOAD', {}),
+}
+
+JIT_INTEGRATION = {
+    'enabled': _env_flag('MOBSF_JIT_ENABLED'),
+    'api_url': os.environ.get(
+        'MOBSF_JIT_API_URL', 'https://api.jit.io/v2/scans'),
+    'api_token': os.environ.get('MOBSF_JIT_API_TOKEN', ''),
+    'project_id': os.environ.get('MOBSF_JIT_PROJECT_ID', ''),
+    'file_field': os.environ.get('MOBSF_JIT_FILE_FIELD', 'bundle'),
+    'token_header': os.environ.get('MOBSF_JIT_TOKEN_HEADER', 'Authorization'),
+    'token_prefix': os.environ.get('MOBSF_JIT_TOKEN_PREFIX', 'Bearer '),
+    'extra_payload': _env_json('MOBSF_JIT_EXTRA_PAYLOAD', {}),
+}
+
+GENERIC_SAST_INTEGRATIONS = _env_json('MOBSF_SAST_CONNECTORS', [])
 
 # Dynamic Application Security Testing (DAST) configuration
 DAST_ROOT_DIR = os.path.join(MOBSF_HOME, 'dast/')

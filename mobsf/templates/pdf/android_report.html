@@ -582,6 +582,37 @@
       <span class="disabled">SUPPRESSED: </span>
       <h5 class="description-header">{{ code_analysis.summary.suppressed }}</h5>
     {% endif %}</br>
+      {% if code_analysis.external %}
+      <h3><i class="fas fa-plug"></i> External SAST Integrations</h3>
+      <table class="basic">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Status</th>
+            <th>Message</th>
+            <th>HTTP</th>
+            <th>Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for integration in code_analysis.external %}
+          <tr>
+            <td>{{ integration.provider }}</td>
+            <td>{{ integration.status|default:'-' }}</td>
+            <td>{{ integration.message|default:'-' }}</td>
+            <td>{{ integration.http_status|default:'-' }}</td>
+            <td>
+              {% if integration.reference %}
+                {{ integration.reference }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
        <table class="basic">
                 <thead>
                     <tr>

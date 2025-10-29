@@ -10,6 +10,10 @@ from mobsf.MalwareAnalyzer.views.MalwareDomainCheck import (
 from mobsf.StaticAnalyzer.views.common.shared_func import (
     url_n_email_extract,
 )
+from mobsf.StaticAnalyzer.views.common.external_sast import (
+    ExternalSASTDispatcher,
+    augment_findings_with_external,
+)
 from mobsf.StaticAnalyzer.views.sast_engine import SastEngine
 from mobsf.MobSF.utils import (
     append_scan_status,
@@ -135,6 +139,22 @@ def ios_source_analysis(checksum, src):
         domains = MalwareDomainCheck().scan(
             checksum,
             urls_list)
+        dispatcher = ExternalSASTDispatcher.from_settings()
+        external_results = []
+        if dispatcher.has_connectors:
+            msg = 'Triggering external SAST integrations'
+            logger.info(msg)
+            append_scan_status(checksum, msg)
+            external_results = dispatcher.dispatch(checksum, Path(src))
+            if external_results:
+                code_findings = augment_findings_with_external(
+                    code_findings, external_results)
+                msg = 'External SAST integrations dispatched'
+            else:
+                msg = 'External SAST integrations completed with no responses'
+            logger.info(msg)
+            append_scan_status(checksum, msg)
+
         msg = 'Finished Code Analysis, Email and URL Extraction'
         logger.info(msg)
         append_scan_status(checksum, msg)
@@ -147,6 +167,8 @@ def ios_source_analysis(checksum, src):
             'emailnfile': email_n_file,
             'source_type': source_type,
         }
+        if external_results:
+            code_analysis_dict['external_sast'] = external_results
         return code_analysis_dict
     except Exception as exp:
         msg = 'iOS Source Analysis Failed'

@@ -39,8 +39,11 @@ MobSF is also bundled with [Android Tamer](https://tamerplatform.com), [BlackArc
 Quick setup with docker
 
 ```
-docker pull opensecurity/mobile-security-framework-mobsf:latest
-docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf:latest
+# Build a local image from the current checkout
+docker build -t mobsf:local .
+
+# Run MobSF from that locally built image
+docker run -it --rm -p 8000:8000 mobsf:local
 
 # Default username and password: mobsf/mobsf
 ```
@@ -53,6 +56,43 @@ docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf:la
 * MobSF Online Course: [OpSecX MAS](https://opsecx.com/index.php/product/automated-mobile-application-security-assessment-with-mobsf/)
 * What's New: [See Changelog](https://mobsf.github.io/Mobile-Security-Framework-MobSF/changelog.html)
 * Roadmap de melhorias (pt-BR): [docs/mobsf_melhorias_pt-br.md](docs/mobsf_melhorias_pt-br.md)
+
+## Principais funcionalidades
+
+### Análise estática multiplataforma
+
+* Upload e análise automáticos de apps Android (APK e código-fonte compactado), iOS (IPA) e Windows (APPX), com seleção de modos de execução padrão ou agressivo para priorizar velocidade ou profundidade da varredura.
+* Geração de relatórios em PDF e JSON, scorecards quantitativos e dashboards AppSec, além de comparação entre builds e reanálise de bibliotecas compartilhadas.
+* Visualização de árvore de código, busca por arquivos, inspeção de manifestos e visualização de código-fonte diretamente pelo navegador.
+* Fluxos de supressão por regra ou arquivo para controlar falsos positivos e gerenciamento de fila de tarefas para acompanhar o progresso das análises.
+
+### Inteligência contra malware e privacidade
+
+* Integração com VirusTotal para reaproveitar relatórios existentes ou enviar amostras durante a análise.
+* Correlação de domínios observados com feeds de ameaças, geolocalização e listas de sanções para contextualizar comunicações suspeitas.
+* Identificação de rastreadores de privacidade com base no banco Exodus e detecção de empacotadores, heurísticas de comportamento e permissões abusivas em aplicativos Android.
+* Atualização automática das bases de assinaturas utilizadas por todos os módulos de inteligência sempre que uma nova varredura é executada.
+
+### Análise dinâmica e instrumentação
+
+* Execução assistida de testes dinâmicos Android com coleta de logcat, automação ADB, instalação de CA raiz, configuração de proxy global, captura de tela, screencast e gatilhos para atividades, deep links e testes TLS.
+* Instrumentação baseada em Frida com monitoramento de APIs, execução de scripts prontos, coleta de logs e inspeção de arquivos em tempo real.
+* Orquestração completa de ambientes iOS Corellium: criação, inicialização, reinício e destruição de instâncias, instalação e execução de apps, captura de rede e PCAP ao vivo, screenshots, upload/download de arquivos, execução remota de comandos SSH e coleta de logs do sistema.
+* Interface web para visualizar relatórios dinâmicos, artefatos coletados e resultados consolidados dos testes.
+
+### APIs, segurança de plataforma e automação
+
+* Autenticação com login, alteração de senha, gerenciamento de usuários, suporte a grupos e integração SAML2 para SSO corporativo.
+* REST APIs públicas para upload, disparo de análises, consulta de logs e tarefas, geração de relatórios, supressões, comparação de builds e acesso às capacidades dinâmicas de Android e iOS.
+* Visualização e download de amostras analisadas, exportação de binários reempacotados, documentação embutida das APIs e ferramentas de linha de comando para acelerar integrações CI/CD.
+* Rotinas de inicialização protegidas por ganchos de segurança e impressão de versão para auditoria, garantindo integridade de execução.
+
+### Integrações externas de SAST
+
+* Dispare o envio automático do código-fonte decompilado para o **Semgrep Cloud** ativando `MOBSF_SEMGREP_ENABLED=1` e fornecendo `MOBSF_SEMGREP_API_TOKEN`. Endpoints (`MOBSF_SEMGREP_API_URL`), projeto (`MOBSF_SEMGREP_PROJECT`) e payload adicional (`MOBSF_SEMGREP_EXTRA_PAYLOAD`) podem ser personalizados.
+* Encaminhe as análises para o **Jit.io** com `MOBSF_JIT_ENABLED=1`, `MOBSF_JIT_API_TOKEN` e, opcionalmente, `MOBSF_JIT_PROJECT_ID`. Os campos `MOBSF_JIT_API_URL`, `MOBSF_JIT_FILE_FIELD` e `MOBSF_JIT_EXTRA_PAYLOAD` ajustam a requisição conforme o tenant.
+* Adicione conectores de SAST genéricos descrevendo-os em JSON em `MOBSF_SAST_CONNECTORS` (ex.: `[{"name": "Minha API", "api_url": "https://sast.local/api/scan", "api_token": "secreto", "file_field": "bundle"}]`). Cada objeto aceita `headers`, `token_prefix`, `include_bundle` e `extra_payload` para adaptar autenticação e conteúdo.
+* Todos os conectores respeitam o tempo limite `MOBSF_SAST_INTEGRATION_TIMEOUT` (segundos) e registram o status das integrações na interface web, relatórios PDF/JSON e logs de varredura.
 
 ## Collaborators
 

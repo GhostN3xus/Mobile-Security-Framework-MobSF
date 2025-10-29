@@ -38,10 +38,10 @@ services:
       - mobsf_network
 
   djangoq:
-    image: opensecurity/mobile-security-framework-mobsf:latest
     build:
       context: ..
       dockerfile: Dockerfile
+    image: mobsf:local
     restart: unless-stopped
     command: /home/mobsf/Mobile-Security-Framework-MobSF/scripts/qcluster.sh
     volumes:
@@ -58,10 +58,10 @@ services:
       - mobsf_network
 
   mobsf:
-    image: opensecurity/mobile-security-framework-mobsf:latest
     build:
       context: ..
       dockerfile: Dockerfile
+    image: mobsf:local
     restart: always
     tty: true
     volumes:

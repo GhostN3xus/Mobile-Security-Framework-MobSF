@@ -13,123 +13,182 @@
       <link rel="stylesheet" href="{% static "adminlte/plugins/fontawesome-free/css/all.min.css" %}">
       <link rel="stylesheet" href="{% static "others/css/spinner.css" %}">
       <link rel="stylesheet" href="{% static "landing/css/home.css" %}">
-      <!-- Google Font: Source Sans Pro -->
       <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
    </head>
-   <body class="text-center">
-
-    <div class="d-flex h-100 p-3 mx-auto flex-column">  
-        <nav class="nav nav-masthead justify-content-center">
-            <a class="nav-link active" href="{% url 'recent' %}">SCANS</a>
-            <a class="nav-link" href="{% url 'dynamic' %}">DYNAMIC ANALYZER</a>
-            <div class="pad">
-                <img src="{% static "img/mobsf_logo.png" %}" alt="MobSF Logo" height="30" width="90" />
-            </div>  
-            <a class="nav-link" href="{% url 'api_docs' %}">API</a>
-            <a class="nav-link" href="{% url 'about' %}">ABOUT</a>
-            {% if user.is_authenticated %}
-            <a id="dropdownSubMenu1" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle"><i class="fa fa-user-circle" aria-hidden="true"></i> </a>
-            <a class="nav-link"></a>
-            <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow" style="left: 0px; right: inherit;">
-                <li><a href="#" class="dropdown-item"> <small>{{ request.user.username }} <span class="badge badge-primary"> {% if user.is_staff %} Admin {% else %}{{ request.user.groups.all.0 }} {% endif %}</span></small></a></li>
-                <li class="dropdown-divider"></li>
-                <li><a href="{% url 'change_password' %}" class="dropdown-item"><i class="fa fa-asterisk" aria-hidden="true"></i> Change Password </a></li>
-                {% if user.is_staff %}<li><a href="{% url 'users' %}" class="dropdown-item"><i class="fa fa-users" aria-hidden="true"></i> User Management </a></li>{% endif %}
-                <li><a href="{% url 'logout' %}" class="dropdown-item"><i class="fa fa-power-off" aria-hidden="true"></i> Logout </a></li>
-            </ul>
-            {% endif %}
-            <a class="nav-link">
-                <form action="/search" method="GET">
-                    <input name="query" type="text" class="form-control form-control-sm" placeholder="Search">
-                </form>
-            </a>
-        </nav>
-
-        <header class="masthead mb-auto">
+   <body class="landing-body text-center">
+      <div class="landing-wrapper d-flex flex-column">
+         <nav class="nav nav-masthead justify-content-between align-items-center">
+            <div class="nav-group d-flex align-items-center">
+               <a class="nav-link active" href="{% url 'recent' %}"><i class="fas fa-history mr-1"></i> SCANS</a>
+               <a class="nav-link" href="{% url 'dynamic' %}"><i class="fas fa-bolt mr-1"></i> DYNAMIC ANALYZER</a>
+               <a class="nav-link" href="{% url 'api_docs' %}"><i class="fas fa-code mr-1"></i> API</a>
+               <a class="nav-link" href="{% url 'about' %}"><i class="fas fa-info-circle mr-1"></i> ABOUT</a>
+            </div>
+            <div class="brand d-flex align-items-center">
+               <img src="{% static "img/mobsf_logo.png" %}" alt="MobSF Logo" height="36" width="96" />
+               <span class="brand-subtitle">v{{ version }}</span>
+            </div>
+            <div class="nav-group d-flex align-items-center justify-content-end">
+               {% if user.is_authenticated %}
+               <div class="dropdown mr-2">
+                  <button class="btn btn-sm btn-ghost" id="landingUserMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                     <i class="fa fa-user-circle mr-1" aria-hidden="true"></i>
+                     {{ request.user.username }}
+                  </button>
+                  <div class="dropdown-menu dropdown-menu-right shadow-lg" aria-labelledby="landingUserMenu">
+                     <span class="dropdown-item-text text-muted small">Perfil <span class="badge badge-primary ml-1">{% if user.is_staff %}Admin{% else %}{{ request.user.groups.all.0 }}{% endif %}</span></span>
+                     <div class="dropdown-divider"></div>
+                     <a href="{% url 'change_password' %}" class="dropdown-item"><i class="fa fa-asterisk mr-2" aria-hidden="true"></i>Change Password</a>
+                     {% if user.is_staff %}<a href="{% url 'users' %}" class="dropdown-item"><i class="fa fa-users mr-2" aria-hidden="true"></i>User Management</a>{% endif %}
+                     <a href="{% url 'logout' %}" class="dropdown-item text-danger"><i class="fa fa-power-off mr-2" aria-hidden="true"></i>Logout</a>
+                  </div>
+               </div>
+               {% endif %}
+               <form action="/search" method="GET" class="landing-search">
+                  <div class="input-group input-group-sm">
+                     <input name="query" type="text" class="form-control" placeholder="Search">
+                     <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit" aria-label="Buscar"><i class="fas fa-search"></i></button>
+                     </div>
+                  </div>
+               </form>
+            </div>
+         </nav>
+         <main role="main" class="inner cover flex-grow-1 d-flex flex-column align-items-center">
+            <section class="upload-card glass-card">
+               <div class="upload-header">
+                  <h1 class="display-5">Faça o upload de um aplicativo para iniciar a análise</h1>
+                  <p class="lead">Arraste e solte seus binários móveis ou selecione um arquivo para uma avaliação instantânea com controles de execução seguros.</p>
+               </div>
+               <div class="execution-mode-selector">
+                  <label class="font-weight-bold" for="executionMode">Modo de execução</label>
+                  <select id="executionMode" name="execution_mode" class="custom-select custom-select-sm">
+                     {% for mode in available_execution_modes %}
+                     <option value="{{ mode }}" {% if mode == default_execution_mode %}selected{% endif %}>
+                        {% if mode == 'aggressive' %}
+                        Agressivo · exploração controlada
+                        {% else %}
+                        Padrão · somente análise
+                        {% endif %}
+                     </option>
+                     {% endfor %}
+                  </select>
+                  <small class="form-text text-muted">O modo agressivo ativa automações de exploração controlada. Garanta que o dispositivo sandbox esteja isolado.</small>
+               </div>
+               <form id="upload_form" enctype="multipart/form-data" method="post" class="upload-form">
+                  {% csrf_token %}
+                  <div class="fileUpload btn btn-lg btn-primary" id="but">
+                     <input type="file" name="file" id="uploadFile" placeholder="Choose File" multiple>
+                     <span class="fas fa-cloud-upload-alt mr-2"></span>
+                     Upload &amp; Analyze
+                  </div>
+                  <p class="mb-2 text-muted">ou solte o arquivo em qualquer lugar da tela</p>
+                  <h5 class="lead" id="status"></h5>
+                  <progress id="progressBar" value="0" max="100" class="upload-progress" ></progress>
+               </form>
+               <div class="status-actions">
+                  <input type="download" id="package" class="form-control form-control-sm" placeholder="Download &amp; Scan package" aria-label="Pacote para download e análise" />
+                  <small class="text-muted d-block mt-2">Pressione Enter para baixar um pacote remoto e iniciar a análise automaticamente.</small>
+               </div>
+               <div id="alert" class="alert-bar">Análise iniciada! Você será redirecionado em instantes.</div>
+            </section>
+            <section class="metrics-grid">
+               <div class="metric-card">
+                  <span class="metric-label">Na fila</span>
+                  <span class="metric-value">{{ queued_tasks }}</span>
+                  <span class="metric-caption">Tarefas aguardando processamento</span>
+               </div>
+               <div class="metric-card">
+                  <span class="metric-label">Em execução</span>
+                  <span class="metric-value">{{ running_tasks }}</span>
+                  <span class="metric-caption">Execuções ativas controladas</span>
+               </div>
+               <div class="metric-card">
+                  <span class="metric-label">Análises registradas</span>
+                  <span class="metric-value">{{ recent_scan_count }}</span>
+                  <span class="metric-caption">Resultados disponíveis no histórico</span>
+               </div>
+               <div class="metric-card metric-highlight">
+                  <span class="metric-label">Último relatório</span>
+                  {% if recent_scan %}
+                  <span class="metric-value">{{ recent_scan.APP_NAME|default:recent_scan.FILE_NAME }}</span>
+                  <span class="metric-caption">{{ recent_scan.PACKAGE_NAME|default:"—" }} · {{ recent_scan.TIMESTAMP|date:"d/m/Y H:i" }}</span>
+                  {% else %}
+                  <span class="metric-value">Nenhum ainda</span>
+                  <span class="metric-caption">Envie seu primeiro binário para começar</span>
+                  {% endif %}
+               </div>
+            </section>
+            <section class="feature-grid glass-card">
+               <article class="feature">
+                  <div class="feature-icon"><i class="fas fa-search"></i></div>
+                  <h3>Visibilidade profunda</h3>
+                  <p>Relatórios correlacionam permissões, APIs sensíveis e indicadores de comportamento para priorizar riscos rapidamente.</p>
+               </article>
+               <article class="feature">
+                  <div class="feature-icon"><i class="fas fa-sync"></i></div>
+                  <h3>Fluxos mais rápidos</h3>
+                  <p>O monitor de status atualizado reduz o tráfego de sondagem e mantém o feedback em tempo real durante o upload.</p>
+               </article>
+               <article class="feature">
+                  <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
+                  <h3>Ambientes unificados</h3>
+                  <p>Integração com análise estática e dinâmica, instrumentação Frida e APIs corporativas de forma consistente.</p>
+               </article>
+            </section>
+         </main>
+         <footer class="mastfoot mt-auto">
             <div class="inner">
+               <h6>
+                  <a href="{% url 'recent' %}">RECENT SCANS</a>  ·
+                  <a href="{% url 'dynamic' %}">DYNAMIC ANALYZER</a>  ·
+                  <a href="{% url 'api_docs' %}">API</a>   ·
+                  <a href="{% url 'donate' %}">DONATE ♥</a> ·
+                  <a target="_blank" rel="noopener" href="https://mobsf.github.io/docs/#/">DOCS</a>  ·
+                  <a href="{% url 'about' %}">ABOUT</a>
+               </h6>
+               <p>&copy; {% now "Y" %}  Mobile Security Framework - MobSF {{ version }}</p>
             </div>
-        </header>
-
-        <main role="main" class="inner cover">
-            <div class="inner cover">
-                <div style="visibility:hidden; opacity:0" id="drop">
-                <div id="textnode">Drop anywhere!</div>
-                </div>
-                </br>
-                <form id="upload_form" enctype="multipart/form-data" method="post">
-                {% csrf_token %}
-                <div class="form-group d-flex justify-content-center">
-                    <div>
-                        <label class="font-weight-bold" for="executionMode">Modo de execução</label>
-                        <select id="executionMode" name="execution_mode" class="custom-select custom-select-sm">
-                            {% for mode in available_execution_modes %}
-                            <option value="{{ mode }}" {% if mode == default_execution_mode %}selected{% endif %}>
-                                {% if mode == 'aggressive' %}
-                                Agressivo (exploração controlada)
-                                {% else %}
-                                Padrão (somente análise)
-                                {% endif %}
-                            </option>
-                            {% endfor %}
-                        </select>
-                        <small class="form-text text-muted">O modo agressivo executa automações de exploração controlada usando conectores opcionais.</small>
-                    </div>
-                </div>
-                <div class="fileUpload btn btn-lg btn-secondary" id="but">
-                    <input type="file" name="file" id="uploadFile" placeholder="Choose File" multiple>
-                    <span class="fas fa-cloud-upload-alt"></span>
-                    Upload &amp; Analyze
-                </div>
-                <br />
-                <small><i>Drag &amp; Drop anywhere!</i></small>
-                <p></p>
-                <h5 class="lead" id="status"></h5>
-                <progress id="progressBar" value="0" max="100" style="width:300px;visibility:hidden;" ></progress>
-                </form>
-            </div>
-        </main>
-
-        <footer class="mastfoot mt-auto">
-            <input type="download" id="package" class="form-control form-control-sm" placeholder="Download & Scan Package"/>
-            <p></p>
-            <div class="inner">
-                <h6> <a href="{% url 'recent' %}">RECENT SCANS</a>  |  <a href="{% url 'dynamic' %}">DYNAMIC ANALYZER</a>  |  <a href="{% url 'api_docs' %}">API</a>   |  <a href="{% url 'donate' %}">DONATE ♥</a> |  <a target="_blank"
-                    href="https://mobsf.github.io/docs/#/">DOCS</a>  | <a href="{% url 'about' %}">ABOUT</a></h6>
-                </br>
-                <p>&copy; {% now "Y" %}  Mobile Security Framework - MobSF {{ version }}</p>
-            </div>
-            <div id="alert" class="alert-bar">Analysis started! Please wait to be redirected or check recent scans after sometime.</div>
-        </footer>
-    </div>
-
-    <!--Loading Ring-->
-    <div class="hidden loading">
-        <div class='uil-ring-css' style='transform:scale(0.79);'>
-          <div></div>
-        </div>
-    </div>
-
-    <script src="{% static "adminlte/plugins/jquery.min.js" %}"></script>
-    <script src="{% static "adminlte/plugins/bootstrap/bootstrap.bundle.min.js" %}"></script>
+         </footer>
+      </div>
+      <div class="hidden loading">
+         <div class='uil-ring-css' style='transform:scale(0.79);'>
+            <div></div>
+         </div>
+      </div>
+      <div style="visibility:hidden; opacity:0" id="drop">
+         <div id="textnode">Solte o arquivo aqui!</div>
+      </div>
+      <script src="{% static "adminlte/plugins/jquery.min.js" %}"></script>
+      <script src="{% static "adminlte/plugins/bootstrap/bootstrap.bundle.min.js" %}"></script>
       <script>
             let warning = "This is a demo MobSF instance. Anything uploaded here will be publicly available. Do you want to continue?";
-            // Result View
+            let statusPoller = null;
+            const pollingInterval = 750;
+            function stopStatusPolling(){
+                if (statusPoller){
+                    clearInterval(statusPoller);
+                    statusPoller = null;
+                }
+            }
+            function startStatusPolling(checksum){
+                stopStatusPolling();
+                statusPoller = setInterval(function(){
+                    get_status(checksum);
+                }, pollingInterval);
+            }
             function load_result(url){
                 hide_loader();
-                // Display alert notification
                 var x = document.getElementById("alert");
                 x.className = "alert-bar show slide-up";
                 setTimeout(function () {
                     x.className = x.className.replace("show", "");
                 }, 10000);
-
-                // Redirect after showing alertbar
                 setTimeout(function () {
+                    stopStatusPolling();
                     window.location.href = url;
-                }, 1000); // Adjust delay as needed
+                }, 1000);
             }
-
-            //Download and scan APK
             $('#package').keypress(function(event){
                 var keycode = (event.keyCode ? event.keyCode : event.which);
                 if(keycode == '13'){
@@ -146,12 +205,9 @@
                         },
                         success : function(json){
                             if (json.status === 'ok'){
-                                setInterval(function() {
-                                    get_status(json.hash);
-                                }, 500);
-
+                                startStatusPolling(json.hash);
                                 var mode = json.execution_mode || getExecutionMode();
-                                url = json.analyzer + '/' + json.hash + '/';
+                                var url = json.analyzer + '/' + json.hash + '/';
                                 if (mode && mode !== 'standard') {
                                     url += '?mode=' + encodeURIComponent(mode);
                                 }
@@ -174,24 +230,18 @@
                 var loadingOverlay = document.querySelector('.loading');
                 loadingOverlay.classList.remove('hidden');
             }
-
             function hide_loader(){
                 var loadingOverlay = document.querySelector('.loading');
                 loadingOverlay.classList.add('hidden');
             }
-            // Existing
             function _(el){
                 return document.getElementById(el);
             }
-
-            // Response Handler     
             function responseHandler(json, isbutton) {
                 if (json.status === 'error') {
                     _("status").innerText = json.description;
                 } else {
-                    setInterval(function() {
-                        get_status(json.hash);
-                    }, 500);
+                    startStatusPolling(json.hash);
                     var mode = json.execution_mode || getExecutionMode();
                     var url = json.analyzer + '/' + json.hash + '/';
                     if (mode && mode !== 'standard') {
@@ -200,9 +250,6 @@
                     load_result(url);
                 }
             }
-
-
-           // Get Scan status
            function get_status(checksum){
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", '{% url "status" %}', true);
@@ -212,13 +259,10 @@
                 xhr.onload = function() {
                     if (xhr.status >= 200 && xhr.status < 300) {
                         var response = JSON.parse(xhr.responseText);
-                        if (response.status === 'ok') {
+                        if (response.status === 'ok' && response.logs.length) {
                             const last_log = response.logs[response.logs.length - 1];
-                            _("status").innerText = last_log.status + ' .';
-                            var number = Math.ceil((Math.floor(Math.random() * 5)));
-                            for (i=0;i<number;i++){
-                                _("status").innerText += '.';
-                            }
+                            const dotCount = Math.ceil(Math.random() * 3);
+                            _("status").innerText = last_log.status + ' ' + '.'.repeat(dotCount);
                         }
                     } else {
                         console.log("Error:", xhr.statusText);
@@ -229,10 +273,8 @@
                 };
                 xhr.send('hash=' + checksum);
            }
-
             function progressHandler(event) {
                 var percent = (event.loaded / event.total) * 100;
-                console.log("Uploaded ..." + Math.round(percent));
                 _("progressBar").value = Math.round(percent);
                 _("status").innerText = Math.round(percent) + "% Uploaded ...";
             }
@@ -251,29 +293,25 @@
             function abortHandler(event) {
                 _("status").innerText = "Upload Aborted!";
             }
-          // Is valid file extensions
           function isValidExt(file_name){
                 var val = file_name.toLowerCase();
                 var regex = new RegExp("^(.{1,300}?)\.({{exts}})$");
-                val = val.replace(/^.*[\\\/]/, '');
+                val = val.replace(/^.*[\\\\\/]/, '');
                 if (!(regex.test(val))) {
                     _('status').innerText = "MobSF only supports APK, APKS, XAPK, AAB, JAR, AAR, SO, IPA, DYLIB, A, ZIP, and APPX files.";
                     return false;
                 }
                 return true;
           }
-          // Is allowed mimetype
           function isValidMime(file_mime){
                 if (file_mime.length < 1)
-                    // bypass if mime is not available
-                    return true; 
+                    return true;
                 var supported = [{% for mime in mimes %}'{{mime}}',{% endfor %}];
                 if(supported.indexOf(file_mime) >-1)
                     return true;
                  _('status').innerText = "MIME type (" + file_mime + ") is not supported!";
                 return false;
           }
-         // File Upload
          function getExecutionMode(){
                 var select = document.getElementById('executionMode');
                 if (!select){
@@ -281,7 +319,6 @@
                 }
                 return select.value || '{{ default_execution_mode }}';
          }
-
          function uploadFile(file, i) {
            try {
                 if (!isValidExt(file.name) || !isValidMime(file.type)){
@@ -305,17 +342,13 @@
                 alert("Error:" + e);
             }
            }
-         
            function handleFiles(files) {
                files = [...files]
                files.forEach(uploadFile)
            }
-         
-           // Full Screen Drag & Drop File Upload
            var lastTarget = null;
            function isFile(evt) {
                var dt = evt.dataTransfer;
-         
                for (var i = 0; i < dt.types.length; i++) {
                    if (dt.types[i] === "Files") {
                        return true;
@@ -323,7 +356,6 @@
                }
                return false;
            }
-         
            window.addEventListener("dragenter", function (e) {
                if (isFile(e)) {
                    lastTarget = e.target;
@@ -332,7 +364,6 @@
                    document.querySelector("#textnode").style.fontSize = "48px";
                }
            });
-         
            window.addEventListener("dragleave", function (e) {
                e.preventDefault();
                if (e.target === document || e.target === lastTarget) {
@@ -341,11 +372,9 @@
                    document.querySelector("#textnode").style.fontSize = "42px";
                }
            });
-         
            window.addEventListener("dragover", function (e) {
                e.preventDefault();
            });
-         
            window.addEventListener("drop", function (e) {
                e.preventDefault();
                document.querySelector("#drop").style.visibility = "hidden";
@@ -363,9 +392,7 @@
                 }
                }
            });
-
             $(document).ready(function() {
-                // Button File Upload
                 $('input[type=file]').change(function() {
                     _('status').innerText = "";
                     if (_("uploadFile").files.length === 0) {

@@ -19,6 +19,10 @@ from mobsf.MobSF.utils import (
 from mobsf.StaticAnalyzer.views.common.shared_func import (
     url_n_email_extract,
 )
+from mobsf.StaticAnalyzer.views.common.external_sast import (
+    ExternalSASTDispatcher,
+    augment_findings_with_external,
+)
 from mobsf.StaticAnalyzer.views.sast_engine import (
     ChoiceEngine,
     SastEngine,
@@ -117,6 +121,23 @@ def code_analysis(checksum, app_dir, typ, manifest_file, android_permissions):
         msg = 'Android SAST Completed'
         logger.info(msg)
         append_scan_status(checksum, msg)
+
+        dispatcher = ExternalSASTDispatcher.from_settings()
+        external_results = []
+        if dispatcher.has_connectors:
+            msg = 'Triggering external SAST integrations'
+            logger.info(msg)
+            append_scan_status(checksum, msg)
+            external_results = dispatcher.dispatch(checksum, Path(src))
+            if external_results:
+                result['external_sast'] = external_results
+                result['findings'] = augment_findings_with_external(
+                    result['findings'], external_results)
+                msg = 'External SAST integrations dispatched'
+            else:
+                msg = 'External SAST integrations completed with no responses'
+            logger.info(msg)
+            append_scan_status(checksum, msg)
 
         # API Analysis
         msg = 'Android API Analysis Started'

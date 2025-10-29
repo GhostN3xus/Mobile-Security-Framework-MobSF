@@ -396,11 +396,20 @@ def get_avg_cvss(findings):
     # Average CVSS Score
     cvss_scores = []
     avg_cvss = 0
-    for finding in findings.values():
+    items = []
+    if isinstance(findings, dict) and isinstance(findings.get('findings'), dict):
+        items = findings['findings'].values()
+    elif isinstance(findings, dict):
+        items = findings.values()
+    else:
+        items = []
+    for finding in items:
+        if not isinstance(finding, dict):
+            continue
         find = finding.get('metadata')
         if not find:
             # Hack to support iOS Binary Scan Results
-            find = finding
+            find = finding if isinstance(finding, dict) else {}
         if find.get('cvss'):
             if find['cvss'] != 0:
                 cvss_scores.append(find['cvss'])

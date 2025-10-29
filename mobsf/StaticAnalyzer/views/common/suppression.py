@@ -254,14 +254,24 @@ def delete_suppression(request, api=False):
 
 def process_suppression(data, package):
     """Process all suppression for code."""
-    filtered = {}
     summary = {HIGH: 0, WARNING: 0, INFO: 0,
                SECURE: 0, SUPPRESSED: 0}
-    if len(data) == 0:
+    metadata = {}
+    if isinstance(data, dict):
+        working = dict(data)
+        meta = working.pop('__metadata__', None)
+        if isinstance(meta, dict):
+            metadata = meta
+        data = working
+    else:
+        data = {}
+    if not data:
         return {
-            'findings': data,
+            'findings': {},
             'summary': {},
+            'external': metadata.get('external_sast', []),
         }
+    filtered = {}
     filters = SuppressFindings.objects.filter(
         PACKAGE_NAME=package,
         SUPPRESS_TYPE='code')
@@ -283,7 +293,7 @@ def process_suppression(data, package):
         filter_files = python_dict(filters[0].SUPPRESS_FILES)
         cleaned = copy(filtered)
         if filter_files:
-            for k in filtered:
+            for k in list(filtered):
                 if k not in filter_files.keys():
                     continue
                 for rem_file in filter_files[k]:
@@ -291,7 +301,7 @@ def process_suppression(data, package):
                         del filtered[k]['files'][rem_file]
                         summary[SUPPRESSED] += 1
                 # Remove rule_id with no files
-                if len(filtered[k]['files']) == 0:
+                if len(filtered[k]['files']) == 0 and k in cleaned:
                     del cleaned[k]
     for v in cleaned.values():
         if 'severity' in v:
@@ -310,6 +320,7 @@ def process_suppression(data, package):
     return {
         'findings': cleaned,
         'summary': summary,
+        'external': metadata.get('external_sast', []),
     }
 
 
