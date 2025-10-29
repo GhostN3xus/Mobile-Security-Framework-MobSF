@@ -54,6 +54,36 @@ docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf:la
 * What's New: [See Changelog](https://mobsf.github.io/Mobile-Security-Framework-MobSF/changelog.html)
 * Roadmap de melhorias (pt-BR): [docs/mobsf_melhorias_pt-br.md](docs/mobsf_melhorias_pt-br.md)
 
+## Principais funcionalidades
+
+### Análise estática multiplataforma
+
+* Upload e análise automáticos de apps Android (APK e código-fonte compactado), iOS (IPA) e Windows (APPX), com seleção de modos de execução padrão ou agressivo para priorizar velocidade ou profundidade da varredura.
+* Geração de relatórios em PDF e JSON, scorecards quantitativos e dashboards AppSec, além de comparação entre builds e reanálise de bibliotecas compartilhadas.
+* Visualização de árvore de código, busca por arquivos, inspeção de manifestos e visualização de código-fonte diretamente pelo navegador.
+* Fluxos de supressão por regra ou arquivo para controlar falsos positivos e gerenciamento de fila de tarefas para acompanhar o progresso das análises.
+
+### Inteligência contra malware e privacidade
+
+* Integração com VirusTotal para reaproveitar relatórios existentes ou enviar amostras durante a análise.
+* Correlação de domínios observados com feeds de ameaças, geolocalização e listas de sanções para contextualizar comunicações suspeitas.
+* Identificação de rastreadores de privacidade com base no banco Exodus e detecção de empacotadores, heurísticas de comportamento e permissões abusivas em aplicativos Android.
+* Atualização automática das bases de assinaturas utilizadas por todos os módulos de inteligência sempre que uma nova varredura é executada.
+
+### Análise dinâmica e instrumentação
+
+* Execução assistida de testes dinâmicos Android com coleta de logcat, automação ADB, instalação de CA raiz, configuração de proxy global, captura de tela, screencast e gatilhos para atividades, deep links e testes TLS.
+* Instrumentação baseada em Frida com monitoramento de APIs, execução de scripts prontos, coleta de logs e inspeção de arquivos em tempo real.
+* Orquestração completa de ambientes iOS Corellium: criação, inicialização, reinício e destruição de instâncias, instalação e execução de apps, captura de rede e PCAP ao vivo, screenshots, upload/download de arquivos, execução remota de comandos SSH e coleta de logs do sistema.
+* Interface web para visualizar relatórios dinâmicos, artefatos coletados e resultados consolidados dos testes.
+
+### APIs, segurança de plataforma e automação
+
+* Autenticação com login, alteração de senha, gerenciamento de usuários, suporte a grupos e integração SAML2 para SSO corporativo.
+* REST APIs públicas para upload, disparo de análises, consulta de logs e tarefas, geração de relatórios, supressões, comparação de builds e acesso às capacidades dinâmicas de Android e iOS.
+* Visualização e download de amostras analisadas, exportação de binários reempacotados, documentação embutida das APIs e ferramentas de linha de comando para acelerar integrações CI/CD.
+* Rotinas de inicialização protegidas por ganchos de segurança e impressão de versão para auditoria, garantindo integridade de execução.
+
 ## Collaborators
 
 [Ajin Abraham](https://in.linkedin.com/in/ajinabraham) ![india](https://user-images.githubusercontent.com/4301109/37564171-6549d678-2ab6-11e8-9b9d-21327c7f5d5b.png)  | [Magaofei](https://github.com/magaofei) ![china](https://user-images.githubusercontent.com/4301109/44515364-00bbe880-a6e0-11e8-944d-5b48a86427da.png) | [Matan Dobrushin](https://github.com/matandobr) ![israel](https://user-images.githubusercontent.com/4301109/37564177-782f1758-2ab6-11e8-91e5-c76bde37b330.png) | [Vincent Nadal](https://github.com/superpoussin22) ![france](https://user-images.githubusercontent.com/4301109/37564175-71d6d92c-2ab6-11e8-89d7-d21f5aa0bda8.png)
