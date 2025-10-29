@@ -11,7 +11,6 @@
   <link rel="icon" href="{% static "img/favicon.ico" %}">
 
   <!-- Tell the browser to be responsive to screen width -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{% static "adminlte/plugins/fontawesome-free/css/all.min.css" %}">
   <!-- Theme style -->
@@ -22,26 +21,12 @@
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- Google Font: Source Sans Pro -->
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
-  <style>
-    body {
-      zoom: 0.8; 
-    }
-    .modal-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1040; /* Ensure it is above most elements but below modal */
-      background-color: rgba(0, 0, 0, 0.5); /* Default backdrop color */
-    }
-
-  </style>
+  <link rel="stylesheet" href="{% static "others/css/theme-overrides.css" %}">
   {% block extra_css %}
- 
+
   {% endblock %}
 </head>
-<body class="hold-transition {% block sidebar_option %} {% endblock %} layout-fixed layout-navbar-fixed">
+<body class="hold-transition {% block sidebar_option %} {% endblock %} layout-fixed layout-navbar-fixed mobsf-theme">
 <div class="wrapper">
 {% include "base/nav.html" %}    
  <!-- sidebar-->

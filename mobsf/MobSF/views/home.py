@@ -84,6 +84,14 @@ def index(request):
         'default_execution_mode': settings.AUTOMATION_EXECUTION.get('default_mode', 'standard'),
         'available_execution_modes': ['standard', 'aggressive'],
     }
+    queue_queryset = EnqueuedTask.objects.filter(completed_at__isnull=True)
+    recent_scan = RecentScansDB.objects.order_by('-TIMESTAMP').first()
+    context.update({
+        'queued_tasks': queue_queryset.count(),
+        'running_tasks': queue_queryset.filter(status__iexact='Running').count(),
+        'recent_scan_count': RecentScansDB.objects.count(),
+        'recent_scan': recent_scan,
+    })
     template = 'general/home.html'
     return render(request, template, context)
 

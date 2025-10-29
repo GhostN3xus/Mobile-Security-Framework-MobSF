@@ -60,6 +60,7 @@ SDK_VERSION_MAP = {
     33: 13.0,
     34: 14.0,
     35: 15.0,
+    36: 16.0,
 }
 
 ANDROID_API_SUPPORTED = max(SDK_VERSION_MAP)
