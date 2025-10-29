@@ -86,6 +86,33 @@ MANIFEST_DESC = {
         'name': ('App can be installed on a vulnerable Android version'
                  ' %s, [minSdk=%s]'),
     },
+    'uses_schedule_exact_alarm': {
+        'title': ('%s declared while targeting API level %s'),
+        'level': 'warning',
+        'description': ('Exact alarm access requires additional justification'
+                        ' on Android 12+. Target API level %s declares %s,'
+                        ' which should be limited to core functionality and'
+                        ' documented for Google Play review.'),
+        'name': '%s declared (targetSdkVersion %s)',
+    },
+    'uses_use_exact_alarm': {
+        'title': ('%s declared while targeting API level %s'),
+        'level': 'warning',
+        'description': ('USE_EXACT_ALARM bypasses the user controlled'
+                        ' SCHEDULE_EXACT_ALARM dialog. Apps targeting API'
+                        ' level %s that request %s must ensure alarms are'
+                        ' essential and comply with Google Play policies.'),
+        'name': '%s declared (targetSdkVersion %s)',
+    },
+    'uses_post_notifications': {
+        'title': ('%s declared while targeting API level %s'),
+        'level': 'info',
+        'description': ('Android 13 introduces runtime consent for posting'
+                        ' notifications. Target API level %s declares %s;'
+                        ' verify the app educates users and gracefully'
+                        ' handles denial of the permission.'),
+        'name': '%s declared (targetSdkVersion %s)',
+    },
     'app_is_debuggable': {
         'title': 'Debug Enabled For App<br>[android:debuggable=true]',
         'level': 'high',
@@ -420,6 +447,19 @@ MANIFEST_DESC = {
                         ' device therefore leaving it accessible to any other'
                         ' application on the device.'),
         'name': '%s %s is not Protected. [android:exported=true]',
+    },
+    'missing_exported_android12': {
+        'title': ('<strong>%s</strong> (%s) targets API level %s without '
+                  'defining android:exported'),
+        'level': 'error',
+        'description': ('From Android 12 (API level 31), any %s that declares '
+                        'an intent filter must explicitly set the '
+                        '[android:exported] attribute. The component %s '
+                        'targets API level %s but does not define this '
+                        'attribute, which prevents installation and leaves '
+                        'its exposure ambiguous.'),
+        'name': ('%s (%s) missing android:exported attribute for '
+                 'targetSdkVersion %s'),
     },
     'exported_intent_filter_exists': {
         'title': ('<strong>%s</strong> (%s) is not Protected.<br>'

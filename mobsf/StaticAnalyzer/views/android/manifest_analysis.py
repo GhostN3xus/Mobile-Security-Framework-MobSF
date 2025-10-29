@@ -27,6 +27,8 @@ ANDROID_5_0_LEVEL = 21
 ANDROID_8_0_LEVEL = 26
 ANDROID_9_0_LEVEL = 28
 ANDROID_10_0_LEVEL = 29
+ANDROID_12_0_LEVEL = 31
+ANDROID_13_0_LEVEL = 33
 ANDROID_MANIFEST_FILE = 'AndroidManifest.xml'
 WELL_KNOWN_PATH = '/.well-known/assetlinks.json'
 
@@ -221,8 +223,32 @@ def manifest_analysis(app_dic, man_data_dic):
         granturipermissions = mfxml.getElementsByTagName(
             'grant-uri-permission')
         permissions = mfxml.getElementsByTagName('permission')
+        uses_permissions = []
+        for perm_tag_name in ('uses-permission', 'uses-permission-sdk-23'):
+            try:
+                uses_permissions.extend(
+                    mfxml.getElementsByTagName(perm_tag_name),
+                )
+            except Exception:
+                logger.exception('Reading %s elements', perm_tag_name)
+        declared_permissions = set()
+        for perm_node in uses_permissions:
+            perm_name = (
+                perm_node.getAttribute(f'{ns}:name')
+                or perm_node.getAttribute('name')
+            )
+            if perm_name:
+                declared_permissions.add(perm_name)
         ret_value = []
         ret_list = []
+        target_sdk_value = man_data_dic.get('target_sdk')
+        target_sdk_level = None
+        if target_sdk_value and is_number(target_sdk_value):
+            try:
+                target_sdk_level = int(target_sdk_value)
+            except Exception:
+                target_sdk_level = None
+        target_sdk_display = target_sdk_value or 'Unknown'
         exported = []
         browsable_activities = {}
         permission_dict = {}
@@ -256,6 +282,38 @@ def manifest_analysis(app_dic, man_data_dic):
             minsdk = man_data_dic.get('min_sdk')
             android_version = ANDROID_API_LEVEL_MAP.get(minsdk, 'XX')
             ret_list.append(('vulnerable_os_version2', (android_version, minsdk,), ()))
+
+        if declared_permissions:
+            if 'android.permission.SCHEDULE_EXACT_ALARM' in declared_permissions:
+                if (target_sdk_level is None
+                        or target_sdk_level >= ANDROID_12_0_LEVEL):
+                    ret_list.append(
+                        (
+                            'uses_schedule_exact_alarm',
+                            ('android.permission.SCHEDULE_EXACT_ALARM', target_sdk_display),
+                            (target_sdk_display, 'android.permission.SCHEDULE_EXACT_ALARM'),
+                        ),
+                    )
+            if 'android.permission.USE_EXACT_ALARM' in declared_permissions:
+                if (target_sdk_level is None
+                        or target_sdk_level >= ANDROID_12_0_LEVEL):
+                    ret_list.append(
+                        (
+                            'uses_use_exact_alarm',
+                            ('android.permission.USE_EXACT_ALARM', target_sdk_display),
+                            (target_sdk_display, 'android.permission.USE_EXACT_ALARM'),
+                        ),
+                    )
+            if 'android.permission.POST_NOTIFICATIONS' in declared_permissions:
+                if (target_sdk_level is None
+                        or target_sdk_level >= ANDROID_13_0_LEVEL):
+                    ret_list.append(
+                        (
+                            'uses_post_notifications',
+                            ('android.permission.POST_NOTIFICATIONS', target_sdk_display),
+                            (target_sdk_display, 'android.permission.POST_NOTIFICATIONS'),
+                        ),
+                    )
         # APPLICATIONS
         # Handle multiple application tags in AAR
         backupDisabled = False
@@ -362,6 +420,32 @@ def manifest_analysis(app_dic, man_data_dic):
                             and exported_act == 'true'
                             and (launchmode != 'singleInstance' or task_affinity != '')):
                         ret_list.append(('task_hijacking2', (item,), (target_sdk,)))
+
+                component_requires_export = (
+                    target_sdk_level is not None
+                    and target_sdk_level >= ANDROID_12_0_LEVEL
+                    and node.nodeName in {
+                        'activity',
+                        'activity-alias',
+                        'receiver',
+                        'service',
+                    }
+                )
+                if component_requires_export:
+                    intent_filters = node.getElementsByTagName('intent-filter')
+                    try:
+                        has_intent_filter = len(intent_filters) > 0
+                    except TypeError:
+                        has_intent_filter = bool(getattr(intent_filters, 'length', 0))
+                    if has_intent_filter and not node.hasAttribute(f'{ns}:exported'):
+                        comp_name = node.getAttribute(f'{ns}:name') or 'Unknown Name'
+                        ret_list.append(
+                            (
+                                'missing_exported_android12',
+                                (comp_name, itemname, target_sdk_display),
+                                (itemname, comp_name, target_sdk_display),
+                            )
+                        )
 
                 # Exported Check
                 item = ''
