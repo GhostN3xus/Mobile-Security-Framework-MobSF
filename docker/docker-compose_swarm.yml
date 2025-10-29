@@ -15,7 +15,7 @@ services:
       - mobsfDB_password
 
   mobsf:
-    image: ${MOBSF_IMAGE:-opensecurity/mobile-security-framework-mobsf:latest}
+    image: ${MOBSF_IMAGE:-mobsf:local}
     restart: always
     ports:
      - "8000:8000"
