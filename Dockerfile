@@ -1,5 +1,5 @@
 # Base image
-FROM python:3.13-slim-bookworm
+FROM python:3.11-slim-bookworm
 
 LABEL \
     name="MobSF" \
@@ -20,14 +20,14 @@ ENV DEBIAN_FRONTEND=noninteractive \
     USER_ID=9901 \
     MOBSF_PLATFORM=docker \
     MOBSF_ADB_BINARY=/usr/bin/adb \
-    JAVA_HOME=/jdk-22.0.2 \
-    PATH=/jdk-22.0.2/bin:/root/.local/bin:$PATH \
+    JAVA_HOME=/opt/jdk-22.0.2 \
+    PATH=/opt/jdk-22.0.2/bin:/root/.local/bin:$PATH \
     DJANGO_SUPERUSER_USERNAME=mobsf \
     DJANGO_SUPERUSER_PASSWORD=mobsf
 
 # See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#run
-RUN apt update -y && \
-    apt install -y --no-install-recommends \
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
     android-sdk-build-tools \
     android-tools-adb \
     build-essential \
@@ -49,9 +49,9 @@ RUN apt update -y && \
     echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
     update-locale LANG=en_US.UTF-8 && \
-    apt upgrade -y && \
+    apt-get upgrade -y && \
     curl -sSL https://install.python-poetry.org | python3 - && \
-    apt autoremove -y && apt clean -y && rm -rf /var/lib/apt/lists/* /tmp/*
+    apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/*
 
 ARG TARGETPLATFORM
 
@@ -60,29 +60,28 @@ COPY scripts/dependencies.sh mobsf/MobSF/tools_download.py ./
 RUN ./dependencies.sh
 
 # Install Python dependencies
-COPY pyproject.toml .
+COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false && \
-  poetry lock && \
   poetry install --only main --no-root --no-interaction --no-ansi && \
   poetry cache clear . --all --no-interaction && \
   rm -rf /root/.cache/
 
 # Cleanup
 RUN \
-    apt remove -y \
+    apt-get remove -y \
         git \
         python3-dev \
         wget && \
-    apt clean && \
-    apt autoclean && \
-    apt autoremove -y && \
+    apt-get clean && \
+    apt-get autoclean && \
+    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* /tmp/* > /dev/null 2>&1
 
 # Copy source code
 WORKDIR /home/mobsf/Mobile-Security-Framework-MobSF
 COPY . .
 
-HEALTHCHECK CMD curl --fail http://host.docker.internal:8000/ || exit 1
+HEALTHCHECK CMD curl --fail http://127.0.0.1:8000/ || exit 1
 
 # Expose MobSF Port and Proxy Port
 EXPOSE 8000 1337

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 JDK_FILE=openjdk-22.0.2_linux-x64_bin.tar.gz
 JDK_FILE_ARM=openjdk-22.0.2_linux-aarch64_bin.tar.gz
 WKH_FILE=wkhtmltox_0.12.6.1-3.bookworm_amd64.deb
@@ -29,7 +30,8 @@ wget --quiet -O /tmp/${WKH_FILE} "${WKH_URL}" && \
 # Install OpenJDK
 echo "Installing $JDK_FILE ..."
 wget --quiet "${JDK_URL}" && \
-    tar zxf "${JDK_FILE}" && \
+    install -d /opt && \
+    tar zxf "${JDK_FILE}" -C /opt && \
     rm -f "${JDK_FILE}"
 
 # Install JADX

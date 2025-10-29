@@ -1,0 +1,178 @@
+:root {
+  --mobsf-bg: #0f172a;
+  --mobsf-bg-alt: #111827;
+  --mobsf-surface: rgba(17, 24, 39, 0.85);
+  --mobsf-border: rgba(148, 163, 184, 0.25);
+  --mobsf-text: #e2e8f0;
+  --mobsf-text-muted: #94a3b8;
+  --mobsf-primary: #2563eb;
+  --mobsf-primary-dark: #1d4ed8;
+  --mobsf-accent: #14b8a6;
+  --mobsf-warning: #f97316;
+}
+
+body {
+  background: radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.18), transparent 55%),
+              radial-gradient(circle at 100% 0%, rgba(20, 184, 166, 0.12), transparent 50%),
+              var(--mobsf-bg);
+  color: var(--mobsf-text);
+  font-feature-settings: "tnum" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.main-header.navbar {
+  background: linear-gradient(120deg, rgba(37, 99, 235, 0.95), rgba(14, 165, 233, 0.85));
+  backdrop-filter: blur(6px);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: var(--mobsf-text-muted);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link:focus,
+.navbar-dark .navbar-nav .nav-link.active {
+  color: var(--mobsf-text);
+  transform: translateY(-1px);
+}
+
+.navbar .btn-quick-action {
+  border-radius: 999px;
+  font-weight: 600;
+  padding: 0.35rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.navbar .btn-quick-action .icon {
+  font-size: 0.85rem;
+}
+
+.main-sidebar {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.88));
+  border-right: 1px solid var(--mobsf-border);
+}
+
+.brand-link {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  letter-spacing: 0.05em;
+}
+
+.brand-link .brand-image {
+  filter: drop-shadow(0 6px 10px rgba(37, 99, 235, 0.35));
+}
+
+.content-wrapper,
+.main-footer {
+  background-color: transparent;
+  backdrop-filter: blur(4px);
+}
+
+.content-wrapper > .content {
+  background: rgba(15, 23, 42, 0.45);
+  border-radius: 1rem;
+  border: 1px solid var(--mobsf-border);
+  margin: 1.5rem;
+  padding: 1.75rem;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
+}
+
+.main-footer {
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--mobsf-text-muted);
+}
+
+.main-footer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.form-control,
+.form-control:focus,
+.select2-container--default .select2-selection--single {
+  background-color: rgba(15, 23, 42, 0.8);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: var(--mobsf-text);
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+  border-color: var(--mobsf-primary);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(37, 99, 235, 0.12);
+}
+
+.badge-primary {
+  background: linear-gradient(135deg, var(--mobsf-primary), var(--mobsf-primary-dark));
+}
+
+.btn-primary,
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background: linear-gradient(135deg, var(--mobsf-primary), var(--mobsf-primary-dark));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+}
+
+.btn-outline-primary {
+  color: var(--mobsf-primary);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.card,
+.modal-content,
+.info-box,
+.callout,
+.alert,
+.table,
+.list-group-item {
+  background: rgba(17, 24, 39, 0.85);
+  border-color: var(--mobsf-border);
+  color: var(--mobsf-text);
+  backdrop-filter: blur(8px);
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1040;
+  background-color: rgba(15, 23, 42, 0.7);
+}
+
+.alert-info {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: var(--mobsf-text);
+}
+
+.alert-warning {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.45);
+  color: var(--mobsf-text);
+}
+
+#navbar-search-input::placeholder {
+  color: var(--mobsf-text-muted);
+}
+
+@media (max-width: 991.98px) {
+  .content-wrapper > .content {
+    margin: 0.75rem;
+    padding: 1.25rem;
+  }
+
+  .navbar .btn-quick-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
