@@ -39,8 +39,11 @@ MobSF is also bundled with [Android Tamer](https://tamerplatform.com), [BlackArc
 Quick setup with docker
 
 ```
-docker pull opensecurity/mobile-security-framework-mobsf:latest
-docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf:latest
+# Build a local image from the current checkout
+docker build -t mobsf:local .
+
+# Run MobSF from that locally built image
+docker run -it --rm -p 8000:8000 mobsf:local
 
 # Default username and password: mobsf/mobsf
 ```
